@@ -11,10 +11,10 @@ class TrainingExample(object):
         self.targetValue = targetValue
 
     def __str__(self):
-        return "Training Values: {}\nTargetValues: {}\n".format(self.attributes, self.targetValue)
+        return "\n***EXAMPLE DATA POINT***\nTraining Values:\n {}\nTargetValues: {}\n".format(self.attributes, self.targetValue)
 
     def __repr__(self):
-        return self.__str__()
+        return str(self)
 
 class Attribute(object):
     def __init__(self, attrName, attrValues):
@@ -22,19 +22,17 @@ class Attribute(object):
         self.attrValues = attrValues
 
     def __str__(self):
-        return "Attribute Name: {}\nAttributeValues: {}\n".format(self.attrName, self.attrValues)
+        return "Attribute Name: {} || AttributeValue(s): {}\n".format(self.attrName, self.attrValues)
 
     def __repr__(self):
-        return self.__str__()
+        return str(self)
 
 class DecisionTree(object):
-    def __init__(self, nbrOfTargets, targetNames, nbrOfAttributes, attributesAndValues, nbrOfTrainingExamples, trainingExamples):
-        self.nbrOfTargets = nbrOfTargets
+    def __init__(self, targetNames, attributesAndValues, trainingExamples):
         self.targetNames = targetNames
-        self.nbrOfAttributes = nbrOfAttributes
         self.attributesAndValues = attributesAndValues
-        self.nbrOfTrainingExamples = nbrOfTrainingExamples
         self.trainingExamples = trainingExamples
+        self.rootNode = None
         self.buildTree()
 
     def buildTree(self):
@@ -47,23 +45,24 @@ def main(argv):
     if len(argv) < 1:
         print(usage())
     dataFilePath = argv[1]
+    targetNames = attributes = examples = None
     with open(dataFilePath, "r") as fh:
-        nbrOfTargetsLine = fh.readline().strip()
-        targetValuesLine = fh.readline().strip()
+        nbrOfTargets = int(fh.readline().strip())
+        targetValues = fh.readline().strip().split("T:")[1].split()
         nbrOfAttributes = int(fh.readline().strip())
         
         # build a list of attribute objects holding the attrName and attrValues
-        attributes = [Attribute(None, None)] * nbrOfAttributes
+        attributes = []
         for attrNum in range(nbrOfAttributes):
             attrLine = fh.readline().strip().split("A:")[1]
             attrLineParts = attrLine.split()
             attrName = attrLineParts[0]
-            attributes[attrNum].attrName = attrName
             attrValues = []
             for i in range(2, len(attrLineParts)):
                 attrValues.append(attrLineParts[i])
-            attributes[attrNum].attrValues = attrValues
-                
+            attribute = Attribute(attrName, attrValues)
+            attributes.append(attribute)
+        
         # build a list of all the example data
         nbrOfExamples = int(fh.readline().strip())
         examples = []
@@ -71,12 +70,17 @@ def main(argv):
             exampleLine = fh.readline().strip().split("D:")[1]
             exampleLineParts = exampleLine.split()
             targetValue = exampleLineParts[-1]
-            exampleAttributes = [Attribute(None, None)] * nbrOfAttributes
+            exampleAttributes = []
+            for j in range(nbrOfAttributes):
+                attrName = attributes[j].attrName
+                attrValues = [exampleLineParts[j]]
+                attribute = Attribute(attrName, attrValues)
+                exampleAttributes.append(attribute)
+            te = TrainingExample(exampleAttributes, targetValue)
+            examples.append(te)
 
+    tree = DecisionTree(targetValues, attributes, examples)
 
-
-
-    #dt = DecisionTree()
 
 def usage():
     """
