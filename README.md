@@ -4,3 +4,4 @@
 
 ## Viz
 - [JavaScript InfoVis Toolkit](http://philogb.github.io/jit/index.html)
+- [JSON Structure](http://stackoverflow.com/questions/14484613/load-local-json-file-into-variable)
