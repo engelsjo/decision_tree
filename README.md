@@ -1,5 +1,4 @@
-# [Automated Classification using Decision
-Trees](http://www.cis.gvsu.edu/~wolffe/courses/cs678/projects/project3.pdf)
+# [Automated Classification using Decision Trees](http://www.cis.gvsu.edu/~wolffe/courses/cs678/projects/project3.pdf)
 
 ## Contributors: Michael Baldwin, Josh Engelsma, Adam Terwilliger
 
