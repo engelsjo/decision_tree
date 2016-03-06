@@ -54,6 +54,8 @@ class DecisionTree(object):
         """
         method to build our tree
         """
+        if self.attributesAndValues == []:
+            return currNode
         divisionAttribute = self.getDivisionAttribute(trainingExamples)
         if currNode == None: # rootptr
             currNode = TreeNode(divisionAttribute.attrName)
@@ -229,9 +231,8 @@ def main(argv):
 
     tree = DecisionTree(targetValues, attributes, examples)
     # tests
-    #print(str(tree.rootNode.childrenNodes["Sunny"].childrenNodes["Moderate"]))
+    print(str(tree.rootNode.childrenNodes["Sunny"].childrenNodes["Moderate"]))
     #print(str(tree.rootNode.childrenNodes["Cloudy"]))
-    print(str(tree.rootNode.childrenNodes["Rainy"].childrenNodes["Warm"].childrenNodes["Strong"]))
 
 
 def usage():
@@ -242,9 +243,6 @@ def usage():
     python decision_tree.py [dataFile]
         [dataFile] - the path to the file that will be used to build the tree
     """
-
-
-
 
 if __name__ == "__main__":
     main(sys.argv)
