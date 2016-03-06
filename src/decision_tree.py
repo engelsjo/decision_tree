@@ -5,6 +5,22 @@
 import sys
 import math
 
+class Queue:
+    def __init__(self):
+        self.items = []
+
+    def isEmpty(self):
+        return self.items == []
+
+    def enqueue(self, item):
+        self.items.insert(0,item)
+
+    def dequeue(self):
+        return self.items.pop()
+
+    def size(self):
+        return len(self.items)
+
 class TrainingExample(object):
     def __init__(self, attributes, targetValue):
         # self.attributes will be a list of Attribute objects where each attribute has a list of 1 value
@@ -37,8 +53,8 @@ class TreeNode(object):
 
     def __str__(self):
         if not self.isLeaf:
-            return "NODE: {}\nBranches: {}\n".format(self.name, self.childrenNodes.keys())
-        return "** LeafNode **\nTarget: {}\n".format(self.targetValue)
+            return "NODE: {} - Branches: {} ".format(self.name, self.childrenNodes.keys())
+        return "** LeafNode ** Target: {} ".format(self.targetValue)
 
     def __repr__(self):
         return str(self)
@@ -49,6 +65,18 @@ class DecisionTree(object):
         self.attributesAndValues = attributesAndValues
         self.trainingExamples = trainingExamples
         self.rootNode = self.buildSubTree(self.trainingExamples, None)
+
+    def pretty_print(self):
+        # use a BFS algorithm to print out level order
+        q = Queue();
+        q.enqueue(self.rootNode)
+        while (q.size() > 0):
+            node = q.dequeue();
+            print(node)
+            for childrenKey in node.childrenNodes.keys():
+                childNode = node.childrenNodes[childrenKey]
+                if not childNode.isLeaf:
+                    q.enqueue(childNode)
 
     def buildSubTree(self, trainingExamples, currNode):
         """
@@ -99,18 +127,13 @@ class DecisionTree(object):
         maxEntropy = self.calculateEntropy(dataSet, None)["initial"][1]
         currMaxGain = 0
         currMaxAttr = None
-        deletionIndex = None
         for i, attribute in enumerate(self.attributesAndValues):
             # calculate the info gain for this attribute
             attributeValuesAndEntropy = self.calculateEntropy(dataSet, attribute)
             gainForAttribute = self.calculateGain(maxEntropy, len(dataSet), attributeValuesAndEntropy)
-            print(gainForAttribute)
             if gainForAttribute >= currMaxGain:
                 currMaxAttr = attribute
                 currMaxGain = gainForAttribute
-                deletionIndex = i
-        # update the list of attributes we can divide on
-        self.attributesAndValues.pop(deletionIndex)
         return currMaxAttr
 
     def calculateEntropy(self, dataSet, attribute):
@@ -231,18 +254,14 @@ def main(argv):
 
     tree = DecisionTree(targetValues, attributes, examples)
     # tests
-    print(str(tree.rootNode.childrenNodes["Sunny"].childrenNodes["Moderate"]))
-    #print(str(tree.rootNode.childrenNodes["Cloudy"]))
-
+    tree.pretty_print()
+    
 
 def usage():
-    """
-    return str of how to operate the program
-    """
     return """
-    python decision_tree.py [dataFile]
-        [dataFile] - the path to the file that will be used to build the tree
-    """
+            python decision_tree.py [dataFile]
+                [dataFile] - the path to the file that will be used to build the tree
+            """
 
 if __name__ == "__main__":
     main(sys.argv)
