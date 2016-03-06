@@ -29,24 +29,36 @@ class Attribute(object):
         return str(self)
 
 class TreeNode(object):
-    def __init__(self, name, d):
+    def __init__(self, name=None):
         self.name = name
         self.isLeaf = False
         self.targetValue = None
+        self.childrenNodes = {}
+
+    def __str__(self):
+        if not self.isLeaf:
+            return "NODE: {}\nBranches: {}\n".format(self.name, self.childrenNodes.keys())
+        return "** LeafNode **\nTarget: {}\n".format(self.targetValue)
+
+    def __repr__(self):
+        return str(self)
 
 class DecisionTree(object):
     def __init__(self, targetNames, attributesAndValues, trainingExamples):
         self.targetNames = targetNames
         self.attributesAndValues = attributesAndValues
         self.trainingExamples = trainingExamples
-        self.rootNode = self.buildTree(self.trainingExamples)
-        print(self.rootNode)
+        self.rootNode = self.buildSubTree(self.trainingExamples, None)
 
-    def buildTree(self, trainingExamples):
+    def buildSubTree(self, trainingExamples, currNode):
         """
         method to build our tree
         """
         divisionAttribute = self.getDivisionAttribute(trainingExamples)
+        if currNode == None: # rootptr
+            currNode = TreeNode(divisionAttribute.attrName)
+        else:
+            currNode.name = divisionAttribute.attrName
         # divide up our data based on the attribute we got back
         subLists = {}
         for attrValue in divisionAttribute.attrValues:
@@ -54,17 +66,22 @@ class DecisionTree(object):
         for example in trainingExamples:
             # if the example attribute matches our division attributes, add training example to correct sublist
             for attribute in example.attributes:
-                if attribute.attrName == divisionAttribute.attributeName:
+                if attribute.attrName == divisionAttribute.attrName:
                     subLists[attribute.attrValues[0]].append(example)
         # check if any of the sublists would require us to return a leaf node
         for subListKey in subLists:
+            childNode = TreeNode()
             subList = subLists[subListKey]
             if self.isLeafNode(subList):
-                # create a leaf Node
-                node = TreeNode()
-        #now I have 'subLists' which is a dictionary of attributes Values matched to dataSubSets
-        for subListKey in subLists:
-            self.buildTree(subLists[subListKey])  
+                childNode.isLeaf = True
+                childNode.targetValue = subList[0].targetValue
+                currNode.childrenNodes[subListKey] = childNode
+            else:
+                currNode.childrenNodes[subListKey] = childNode
+                # recursively build using each sublist
+                self.buildSubTree(subList, childNode)
+        #return the root node with everything built on
+        return currNode
 
     def isLeafNode(self, subList):
         """
@@ -86,7 +103,7 @@ class DecisionTree(object):
             attributeValuesAndEntropy = self.calculateEntropy(dataSet, attribute)
             gainForAttribute = self.calculateGain(maxEntropy, len(dataSet), attributeValuesAndEntropy)
             print(gainForAttribute)
-            if gainForAttribute > currMaxGain:
+            if gainForAttribute >= currMaxGain:
                 currMaxAttr = attribute
                 currMaxGain = gainForAttribute
                 deletionIndex = i
@@ -211,6 +228,10 @@ def main(argv):
             examples.append(te)
 
     tree = DecisionTree(targetValues, attributes, examples)
+    # tests
+    #print(str(tree.rootNode.childrenNodes["Sunny"].childrenNodes["Moderate"]))
+    #print(str(tree.rootNode.childrenNodes["Cloudy"]))
+    print(str(tree.rootNode.childrenNodes["Rainy"].childrenNodes["Warm"].childrenNodes["Strong"]))
 
 
 def usage():
