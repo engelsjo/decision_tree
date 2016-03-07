@@ -214,8 +214,58 @@ class DecisionTree(object):
             gain = gain - (float(totalNbrMatchingAttributeValue) / float(dataSetSize)) * entropyForAttrValue
         return gain
 
+    def predictExamplePoint(self, examplePoint):
+        """
+        predicts a training example object, and returns a tuple
+        where the 0th index of the tuple is the predicted value using our tree, and the
+        1st index of the tuple is the actual value from the data point.
+        """
+        if self.rootNode == None:
+            print("you must build a tree from training data before running predictions")
+            sys.exit(1)
+        currNode = self.rootNode
+        while not currNode.isLeaf:
+            currNodeAttrName = currNode.name
+            print(currNodeAttrName)
+            # find the attribute in our example that matches the current Node attribute
+            attributeOfInterest = None
+            for attrib in examplePoint.attributes:
+                if attrib.attrName == currNodeAttrName:
+                    attributeOfInterest = attrib
+                    break
+            attributeOfInterestVal = attributeOfInterest.attrValues[0]
+            currNode = currNode.childrenNodes[attributeOfInterestVal]
+        return (currNode.targetValue, examplePoint.targetValue)
+
+    def predictAllExamplesInFile(self, predictFile):
+        """
+        predicts all the training examples in a file, and returns a list of tuples
+        where the 0th index of the tuple is the predicted value using our tree, and the
+        1st index of the tuple is the actual value from the data point.
+        """
+        if self.rootNode == None:
+            print("You must build a tree from training data before running predictions")
+            sys.exit(1)
+        values = []
+        with open(predictFile, "r") as fh:
+            for exampleLine in fh:
+                if exampleLine[0] == ';':
+                    continue #provides easy way to comment out data 
+                exampleLineParts = exampleLine.split("D:")[1].strip().split()
+                targetValue = exampleLineParts[-1]
+                exampleAttributes = []
+                for j in range(len(self.attributesAndValues)):
+                    attrName = self.attributesAndValues[j].attrName
+                    attrValues = [exampleLineParts[j]]
+                    attribute = Attribute(attrName, attrValues)
+                    exampleAttributes.append(attribute)
+                te = TrainingExample(exampleAttributes, targetValue)
+                predictVsActualTuple = self.predictExamplePoint(te)
+                values.append(predictVsActualTuple)
+        return values
+
 def main(argv):
-    if len(argv) < 1:
+    if len(argv) < 2:
         print(usage())
     dataFilePath = argv[1]
     targetNames = attributes = examples = None
@@ -254,7 +304,11 @@ def main(argv):
 
     tree = DecisionTree(targetValues, attributes, examples)
     # tests
-    tree.pretty_print()
+    #tree.pretty_print()
+    if len(argv) == 3:
+        testDataFile = argv[2]
+        treeTestingResults = tree.predictAllExamplesInFile(testDataFile)
+        print(treeTestingResults)
     
 
 def usage():
