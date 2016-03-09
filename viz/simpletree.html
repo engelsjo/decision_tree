@@ -59,7 +59,7 @@
         }
     ];
 
-    // ************** Generate the tree diagram  *****************
+    // ************** Generate the tree diagram	 *****************
     var margin = {top: 20, right: 120, bottom: 20, left: 120},
             width = 960 - margin.right - margin.left,
             height = 500 - margin.top - margin.bottom;
@@ -91,7 +91,7 @@
         // Normalize for fixed-depth.
         nodes.forEach(function(d) { d.y = d.depth * 180; });
 
-        // Declare the nodesâ€¦
+        // Declare the nodes…
         var node = svg.selectAll("g.node")
                 .data(nodes, function(d) { return d.id || (d.id = ++i); });
 
@@ -114,7 +114,7 @@
                 .text(function(d) { return d.name; })
                 .style("fill-opacity", 1);
 
-        // Declare the linksâ€¦
+        // Declare the links…
         var link = svg.selectAll("path.link")
                 .data(links, function(d) { return d.target.id; });
 
