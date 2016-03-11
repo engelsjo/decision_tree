@@ -9,6 +9,7 @@
 }
 
 .node circle {
+    fill: #663300;
     stroke: #006600;
     stroke-width: 3px;
 }

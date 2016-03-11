@@ -4,84 +4,53 @@
  * Purpose: Interactive Decision Tree using d3.js
  */
 
-//var data = JSON.parse('../data/decision_tree.json');
-//console.log(data);
-
-//var test = decision_tree;
-//console.log(test);
-
 var data; // a global
 
 d3.json("data/decision_tree.json", function(error, json) {
     if (error) return console.warn(error);
-    data = json;
-    console.log([data]);
-    //generate();
+    data = [json]; // store object inside array
+    generate();
 });
 
-// /*
-var treeData = [
-    {
-        "name": "Top Level",
-        "parent": "null",
-        "children": [
-            {
-                "name": "Level 2: A",
-                "parent": "Top Level",
-                "children": [
-                    {
-                        "name": "Son of A",
-                        "parent": "Level 2: A"
-                    },
-                    {
-                        "name": "Daughter of A",
-                        "parent": "Level 2: A"
-                    }
-                ]
-            },
-            {
-                "name": "Level 2: B",
-                "parent": "Top Level"
-            }
-        ]
-    }
-];
-// */
+var tree;
+var diagonal;
+var svg;
+var root;
+var i;
+var duration;
 
-
+function generate() {
 // ************** Generate the tree diagram	 *****************
-//var tree, svg;
-//function generate() {
     var margin = {top: 20, right: 120, bottom: 20, left: 120},
         width = 960 - margin.right - margin.left,
         height = 500 - margin.top - margin.bottom;
 
-    var i = 0,
-        duration = 750,
-        root;
+    i = 0;
+    duration = 750;
+        //root;
 
-    var tree = d3.layout.tree()
+    tree = d3.layout.tree()
         .size([height, width]);
 
-    var diagonal = d3.svg.diagonal()
+    diagonal = d3.svg.diagonal()
         .projection(function (d) {
             return [d.y, d.x];
         });
 
-    var svg = d3.select("#decision_tree").append("svg")
+    svg = d3.select("#decision_tree").append("svg")
         .attr("width", width + margin.right + margin.left)
         .attr("height", height + margin.top + margin.bottom)
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    root = treeData[0];
+    root = data[0];
     root.x0 = height / 2;
     root.y0 = 0;
 
     update(root);
 
     d3.select(self.frameElement).style("height", "500px");
-//}
+}
 
 function update(source) {
 
