@@ -6,7 +6,7 @@
 
 var data; // a global
 
-d3.json("data/decision_tree.json", function(error, json) {
+d3.json("../data/decision_tree.json", function(error, json) {
     if (error) return console.warn(error);
     data = [json]; // store object inside array
     generate();

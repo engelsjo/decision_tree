@@ -65,7 +65,7 @@ class DecisionTree(object):
         self.targetNames = targetNames
         self.attributesAndValues = attributesAndValues
         self.trainingExamples = trainingExamples
-        self.rootNode, self.vizRootNode = self.buildSubTree(self.trainingExamples, None, {})
+        self.rootNode, self.vizRootNode = self.buildSubTree(self.trainingExamples, None, {'parent': None})
 
     def pretty_print(self):
         # use a BFS algorithm to print out level order
@@ -326,7 +326,7 @@ def main(argv):
     print(tree.vizRootNode)
     # export the dictionary to a json file
     with open('../viz/data/decision_tree.json', 'w') as jsonfile:
-        json.dump(data, jsonfile)
+        json.dump(tree.vizRootNode, jsonfile)
     
 
 def usage():
