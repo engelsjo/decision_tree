@@ -4,6 +4,7 @@
 
 import sys
 import math
+import json
 
 class Queue:
     def __init__(self):
@@ -64,7 +65,7 @@ class DecisionTree(object):
         self.targetNames = targetNames
         self.attributesAndValues = attributesAndValues
         self.trainingExamples = trainingExamples
-        self.rootNode = self.buildSubTree(self.trainingExamples, None)
+        self.rootNode, self.vizRootNode = self.buildSubTree(self.trainingExamples, None, {})
 
     def pretty_print(self):
         # use a BFS algorithm to print out level order
@@ -78,7 +79,7 @@ class DecisionTree(object):
                 if not childNode.isLeaf:
                     q.enqueue(childNode)
 
-    def buildSubTree(self, trainingExamples, currNode):
+    def buildSubTree(self, trainingExamples, currNode, currVizNode):
         """
         method to build our tree
         """
@@ -87,8 +88,10 @@ class DecisionTree(object):
         divisionAttribute = self.getDivisionAttribute(trainingExamples)
         if currNode == None: # rootptr
             currNode = TreeNode(divisionAttribute.attrName)
+            currVizNode['name'] = divisionAttribute.attrName
         else:
             currNode.name = divisionAttribute.attrName
+            currVizNode['name'] = divisionAttribute.attrName
         # divide up our data based on the attribute we got back
         subLists = {}
         for attrValue in divisionAttribute.attrValues:
@@ -101,17 +104,26 @@ class DecisionTree(object):
         # check if any of the sublists would require us to return a leaf node
         for subListKey in subLists:
             childNode = TreeNode()
+            childVizNode = {}
+            childVizNode['parent'] = currVizNode['name']
             subList = subLists[subListKey]
             if self.isLeafNode(subList):
                 childNode.isLeaf = True
                 childNode.targetValue = subList[0].targetValue
                 currNode.childrenNodes[subListKey] = childNode
+                # build our viz structure
+                childVizNode['name'] = subList[0].targetValue
+                if 'children' not in currVizNode: currVizNode['children'] = []
+                currVizNode['children'].append(childVizNode)
             else:
                 currNode.childrenNodes[subListKey] = childNode
+                # build our viz structure
+                if 'children' not in currVizNode: currVizNode['children'] = []
+                currVizNode['children'].append(childVizNode)
                 # recursively build using each sublist
-                self.buildSubTree(subList, childNode)
+                self.buildSubTree(subList, childNode, childVizNode)
         #return the root node with everything built on
-        return currNode
+        return currNode, currVizNode
 
     def isLeafNode(self, subList):
         """
@@ -305,10 +317,16 @@ def main(argv):
     tree = DecisionTree(targetValues, attributes, examples)
     # tests
     #tree.pretty_print()
+    """
     if len(argv) == 3:
         testDataFile = argv[2]
         treeTestingResults = tree.predictAllExamplesInFile(testDataFile)
         print(treeTestingResults)
+    """
+    print(tree.vizRootNode)
+    # export the dictionary to a json file
+    with open('../viz/data/decision_tree.json', 'w') as jsonfile:
+        json.dump(data, jsonfile)
     
 
 def usage():
