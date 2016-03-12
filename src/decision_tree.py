@@ -305,7 +305,7 @@ def main(argv):
 
     tree = DecisionTree(targetValues, attributes, examples)
     # tests
-    #tree.pretty_print()
+    tree.pretty_print()
     if len(argv) == 3:
         testDataFile = argv[2]
         treeTestingResults = tree.predictAllExamplesInFile(testDataFile)
