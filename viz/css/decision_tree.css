@@ -1,0 +1,24 @@
+/*
+ * Project: CIS 678 Project 3 - Decision Tree
+ * Authors: Michael Baldwin, Josh Engelsma, Adam Terwilliger
+ * Purpose: Styling for Interactive Decision Tree
+ */
+
+.node {
+    cursor: pointer;
+}
+
+.node circle {
+    stroke: #006600;
+    stroke-width: 3px;
+}
+
+.node text {
+    font: 12px sans-serif;
+}
+
+.link {
+    fill: none;
+    stroke: #663300;
+    stroke-width: 2px;
+}
