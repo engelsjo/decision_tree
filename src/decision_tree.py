@@ -45,6 +45,21 @@ class Attribute(object):
     def __repr__(self):
         return str(self)
 
+class TreeNode(object):
+    def __init__(self, name=None):
+        self.name = name
+        self.isLeaf = False
+        self.targetValue = None
+        self.childrenNodes = {}
+
+    def __str__(self):
+        if not self.isLeaf:
+            return "NODE: {} - Branches: {} ".format(self.name, self.childrenNodes.keys())
+        return "** LeafNode ** Target: {} ".format(self.targetValue)
+
+    def __repr__(self):
+        return str(self)
+
 class DecisionTree(object):
     def __init__(self, targetNames, attributesAndValues, trainingExamples):
         self.targetNames = targetNames
@@ -260,11 +275,9 @@ class DecisionTree(object):
                 predictVsActualTuple = self.predictExamplePoint(te)
                 values.append(predictVsActualTuple)
         return values
-        self.rootNode = None
-        self.buildTree()
 
 def main(argv):
-    if len(argv) < 1:
+    if len(argv) < 2:
         print(usage())
     dataFilePath = argv[1]
     targetNames = attributes = examples = None
@@ -305,7 +318,6 @@ def main(argv):
     # tests
     #tree.pretty_print()
     """
-    tree.pretty_print()
     if len(argv) == 3:
         testDataFile = argv[2]
         treeTestingResults = tree.predictAllExamplesInFile(testDataFile)
@@ -318,16 +330,10 @@ def main(argv):
     
 
 def usage():
-    """
-    return str of how to operate the program
-    """
     return """
-    python decision_tree.py [dataFile]
-        [dataFile] - the path to the file that will be used to build the tree
-    """
-
-
-
+            python decision_tree.py [dataFile]
+                [dataFile] - the path to the file that will be used to build the tree
+            """
 
 if __name__ == "__main__":
     main(sys.argv)
