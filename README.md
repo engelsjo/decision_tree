@@ -2,9 +2,11 @@
 
 ## Contributors: Michael Baldwin, Josh Engelsma, Adam Terwilliger
 
-## TODO:
+## Demos
+### [Fishing](http://cis.gvsu.edu/~baldwmic/cis678/project3/viz/demos/fishing.html)
+### [Contact Lenses](http://cis.gvsu.edu/~baldwmic/cis678/project3/viz/demos/contact_lenses.html)
+### [Mushrooms](http://cis.gvsu.edu/~baldwmic/cis678/project3/viz/demos/mushrooms.html)
 
-### Viz
-- D3 Top down Tree viz example
-- Figure out output format from Python to input into viz
-- Convert data from JS to JSON, allows for [Python to export to JSON file](http://stackoverflow.com/questions/12309269/how-do-i-write-json-data-to-a-file-in-python)
+## Datasets
+### [Mushrooms Dataset](https://archive.ics.uci.edu/ml/datasets/Mushroom)
+### [Iris Dataset](https://archive.ics.uci.edu/ml/datasets/Iris)
