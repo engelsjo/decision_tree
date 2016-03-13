@@ -1,28 +1,28 @@
-2																							
-T: p e																							
-22																							
-A: cap-shape 6 b c x f k s																							
-A: cap-surface 4 f g y s																							
-A: cap-color 10 n b c g r p u e w y																							
-A: bruises 2 t f																							
-A: odor 9 a l c y f m n p s																							
-A: gill-attachment 4 a d f n																							
-A: gill-spacing 3 c w d																							
-A: gill-size 2 b n																							
-A: gill-color 12 k n b h g r o p u e w y																							
-A: stalk-shape 2 e t																							
-A: stalk-root 7 b c u e z r ?																							
-A: stalk-surface-above-ring 4 f y k s																							
-A: stalk-surface-below-ring 4 f y k s																							
-A: stalk-color-above-ring 9 n b c g o p e w y																							
-A: stalk-color-below-ring 9 n b c g o p e w y																							
-A: veil-type 2 p u																							
-A: veil-color 4 n o w y																							
-A: ring-number 3 n o t																							
-A: ring-type 8 c e f l n p s z																							
-A: spore-print-color 9 k n b h r o u w y																							
-A: population 6 a c n s v y																							
-A: habitat 7 g l m p u w d																							
+2
+T: p e
+22
+A: cap-shape 6 b c x f k s
+A: cap-surface 4 f g y s
+A: cap-color 10 n b c g r p u e w y
+A: bruises 2 t f
+A: odor 9 a l c y f m n p s
+A: gill-attachment 4 a d f n
+A: gill-spacing 3 c w d
+A: gill-size 2 b n
+A: gill-color 12 k n b h g r o p u e w y
+A: stalk-shape 2 e t
+A: stalk-root 7 b c u e z r ?
+A: stalk-surface-above-ring 4 f y k s
+A: stalk-surface-below-ring 4 f y k s
+A: stalk-color-above-ring 9 n b c g o p e w y
+A: stalk-color-below-ring 9 n b c g o p e w y
+A: veil-type 2 p u
+A: veil-color 4 n o w y
+A: ring-number 3 n o t
+A: ring-type 8 c e f l n p s z
+A: spore-print-color 9 k n b h r o u w y
+A: population 6 a c n s v y
+A: habitat 7 g l m p u w d
 4062																							
 D:	x	s	n	t	p	f	c	n	k	e	e	s	s	w	w	p	w	o	p	k	s	u	p
 D:	x	s	y	t	a	f	c	b	k	e	c	s	s	w	w	p	w	o	p	n	n	g	e
