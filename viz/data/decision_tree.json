@@ -1,17 +1,1 @@
-{"name": "Forecast", 
- "parent": null, 
- "children": [{ "name": "Air", 
-                "parent": "Forecast", 
-                "children": [ {"name": "Wind", 
-                              "parent": "Air", 
-                              "children": [{  "name": "Yes", 
-                                              "parent": "Wind"}, 
-                                            { "name": "No", 
-                                              "parent": "Wind"}
-                                            ]
-                             }, 
-                               {"name": "No", 
-                                "parent": "Air"}
-                            ]
-                }, 
-                {"name": "Wind", "parent": "Forecast", "children": [{"name": "Yes", "parent": "Wind"}, {"name": "Water", "parent": "Wind", "children": [{"name": "Yes", "parent": "Water"}, {"name": "No", "parent": "Water"}, {"name": "No", "parent": "Water"}]}]}, {"name": "Yes", "parent": "Forecast"}]}
+{"name": "Root", "parent": null, "children": [{"name": "Forecast ~ Sunny", "parent": "Root", "children": [{"name": "Wind ~ Strong", "parent": "Forecast ~ Sunny", "children": [{"name": "Decision: Yes", "parent": "Wind ~ Strong"}]}, {"name": "Wind ~ Weak", "parent": "Forecast ~ Sunny", "children": [{"name": "Water ~ Warm", "parent": "Wind ~ Weak", "children": [{"name": "Decision: No", "parent": "Water ~ Warm"}]}, {"name": "Water ~ Moderate", "parent": "Wind ~ Weak", "children": [{"name": "Decision: Yes", "parent": "Water ~ Moderate"}]}, {"name": "Water ~ Cold", "parent": "Wind ~ Weak", "children": [{"name": "Decision: No", "parent": "Water ~ Cold"}]}]}]}, {"name": "Forecast ~ Cloudy", "parent": "Root", "children": [{"name": "Decision: Yes", "parent": "Forecast ~ Cloudy"}]}, {"name": "Forecast ~ Rainy", "parent": "Root", "children": [{"name": "Air ~ Warm", "parent": "Forecast ~ Rainy", "children": [{"name": "Wind ~ Strong", "parent": "Air ~ Warm", "children": [{"name": "Decision: Yes", "parent": "Wind ~ Strong"}]}, {"name": "Wind ~ Weak", "parent": "Air ~ Warm", "children": [{"name": "Decision: No", "parent": "Wind ~ Weak"}]}]}, {"name": "Air ~ Cool", "parent": "Forecast ~ Rainy", "children": [{"name": "Decision: No", "parent": "Air ~ Cool"}]}]}]}
