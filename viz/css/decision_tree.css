@@ -4,21 +4,42 @@
  * Purpose: Styling for Interactive Decision Tree
  */
 
+/**
+ * Color Scheme
+ *
+ * http://s3.amazonaws.com/colorcombos-images/users/1/color-schemes/color-scheme-115-main.png?v=20110818210848
+ *
+ * Red = #CE0000
+ * Navy = #000063
+ * Blue = #5A79A5
+ * Light Blue = #9CAAC6
+ * Light Gray = #DEE7EF
+ *
+ * Black = #111111
+ * White = #ffffff
+ */
+
+body {
+    background-color: #ffffff;
+}
+
 .node {
     cursor: pointer;
 }
 
 .node circle {
-    stroke: #006600;
+    stroke: #5A79A5;
     stroke-width: 3px;
 }
 
 .node text {
-    font: 12px sans-serif;
+    font-family: sans-serif;
+    font-size: 0.3em;
+    fill: #000063;
 }
 
 .link {
     fill: none;
-    stroke: #663300;
+    stroke: #DEE7EF;
     stroke-width: 2px;
 }
