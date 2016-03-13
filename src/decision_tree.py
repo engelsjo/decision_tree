@@ -94,14 +94,6 @@ class DecisionTree(object):
             for attribute in example.attributes:
                 if attribute.attrName == divisionAttribute.attrName:
                     subLists[attribute.attrValues[0]].append(example)
-        # remove some branches
-        removeKeys = []
-        for subListKey in subLists:
-            if subLists[subListKey] == []:
-                print(subListKey)
-                removeKeys.append(subListKey)
-        for key in removeKeys:
-            subLists.pop(key, None)
         # assign all children for the current node
         if 'children' not in currVizNode:    
             currVizNode['children'] = []
@@ -110,7 +102,13 @@ class DecisionTree(object):
         # recursively build for each sublist
         for subListKey in subLists:
             subList = subLists[subListKey]
-            if not self.isLeafNode(subList):
+            if subList == []: # no training examples, default to most common target value
+                for child in currVizNode['children']:
+                    if child['name'].split('~')[1].strip() == subListKey:
+                        # create and append my leaf node
+                        leaf = {'name' : 'Decision: {}'.format("p"), 'parent' : child['name']}
+                        child['children'].append(leaf)
+            elif not self.isLeafNode(subList):
                 for child in currVizNode['children']:
                     if child['name'].split('~')[1].strip() == subListKey: # this is the child viz node to pass on
                         self.buildTree(subList, child)
@@ -143,19 +141,15 @@ class DecisionTree(object):
             for attribute in example.attributes:
                 if attribute.attrName == divisionAttribute.attrName:
                     subLists[attribute.attrValues[0]].append(example)
-        # remove some branches
-        removeKeys = []
-        for subListKey in subLists:
-            if subLists[subListKey] == []:
-                print("{} : {}".format(divisionAttribute.attrName, subListKey))
-                removeKeys.append(subListKey)
-        for key in removeKeys:
-            subLists.pop(key, None)
         # check if any of the sublists would require us to return a leaf node
         for subListKey in subLists:
             childNode = TreeNode()
             subList = subLists[subListKey]
-            if self.isLeafNode(subList):
+            if subList == []: # no training examples, default to most common target value
+                childNode.isLeaf = True
+                childNode.targetValue = "p"
+                currNode.childrenNodes[subListKey] = childNode
+            elif self.isLeafNode(subList):
                 childNode.isLeaf = True
                 childNode.targetValue = subList[0].targetValue
                 currNode.childrenNodes[subListKey] = childNode
@@ -368,8 +362,8 @@ def main(argv):
 
     tree = DecisionTree(targetValues, attributes, examples)
     # tests
-    #results = tree.predictAllExamplesInFile(argv[2])
-    #tree.predictRate(results)
+    results = tree.predictAllExamplesInFile(argv[2])
+    tree.predictedRate(results)
     # export the dictionary to a json file
     with open('../viz/data/decision_tree.json', 'w') as jsonfile:
         json.dump(tree.vizBetterNode, jsonfile)
