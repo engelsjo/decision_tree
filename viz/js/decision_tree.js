@@ -5,11 +5,10 @@
  */
 
 // http://codepen.io/SpencerCooley/pen/JtiFL
-var file = "data/contact_lenses_viz.json";
 
 var data; // a global
 
-d3.json(file, function(error, json) {
+d3.json(datasetFile, function(error, json) {
     if (error) return console.warn(error);
     data = [json]; // store object inside array
     generate();
