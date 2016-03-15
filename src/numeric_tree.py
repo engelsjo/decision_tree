@@ -98,21 +98,31 @@ class DecisionTree(object):
         """
         method to build our tree with better labeling
         """
-        divisionAttribute = self.getDivisionAttribute(trainingExamples)
+        divisionAttribute = self.getDivisionAttributeNumeric(trainingExamples)
         # divide up our data based on the attribute we got back
+        if divisionAttribute == None: return currVizNode
         subLists = {}
-        for attrValue in divisionAttribute.attrValues:
-            subLists[attrValue] = []
-        for example in trainingExamples:
-            # if the example attribute matches our division attributes, add training example to correct sublist
-            for attribute in example.attributes:
+        key1 = "<{}".format(divisionAttribute.attrValues[0])
+        key2 = ">{}".format(divisionAttribute.attrValues[0])
+        subLists[key1] = []
+        subLists[key2] = []
+        # filter out data into the right sublists
+        for examplePoint in trainingExamples:
+            # find the right attribute in the example point
+            for attribute in examplePoint.attributes:
                 if attribute.attrName == divisionAttribute.attrName:
-                    subLists[attribute.attrValues[0]].append(example)
+                    if float(attribute.attrValues[0]) < float(divisionAttribute.attrValues[0]):
+                        subLists[key1].append(examplePoint)
+                    elif float(attribute.attrValues[0]) > float(divisionAttribute.attrValues[0]):
+                        subLists[key2].append(examplePoint)
         # assign all children for the current node
         if 'children' not in currVizNode:    
             currVizNode['children'] = []
-        for val in divisionAttribute.attrValues:
-            currVizNode['children'].append({'name' : "{} ~ {}".format(divisionAttribute.attrName, val), 'parent' : currVizNode['name'], 'children' : []})
+        breakVal = divisionAttribute.attrValues[0]
+        child1Name = "<{}".format(breakVal)
+        child2Name = ">{}".format(breakVal)
+        currVizNode['children'].append({'name' : "{} ~ {}".format(divisionAttribute.attrName, child1Name), 'parent' : currVizNode['name'], 'children' : []})
+        currVizNode['children'].append({'name' : "{} ~ {}".format(divisionAttribute.attrName, child2Name), 'parent' : currVizNode['name'], 'children' : []})
         # recursively build for each sublist
         for subListKey in subLists:
             subList = subLists[subListKey]
@@ -141,38 +151,54 @@ class DecisionTree(object):
         """
         if self.attributesAndValues == []:
             return currNode
-        divisionAttribute = self.getDivisionAttribute(trainingExamples)
-        if currNode == None: # rootptr
-            currNode = TreeNode(divisionAttribute.attrName)
+        divisionAttribute = self.getDivisionAttributeNumeric(trainingExamples)
+        if divisionAttribute == None: # append a leaf node
+            return currNode
         else:
-            currNode.name = divisionAttribute.attrName
-        # divide up our data based on the attribute we got back
-        subLists = {}
-        for attrValue in divisionAttribute.attrValues:
-            subLists[attrValue] = []
-        for example in trainingExamples:
-            # if the example attribute matches our division attributes, add training example to correct sublist
-            for attribute in example.attributes:
-                if attribute.attrName == divisionAttribute.attrName:
-                    subLists[attribute.attrValues[0]].append(example)
-        # check if any of the sublists would require us to return a leaf node
-        for subListKey in subLists:
-            childNode = TreeNode()
-            subList = subLists[subListKey]
-            if subList == []: # no training examples, default to most common target value
-                childNode.isLeaf = True
-                childNode.targetValue = "e"
-                currNode.childrenNodes[subListKey] = childNode
-            elif self.isLeafNode(subList):
-                childNode.isLeaf = True
-                childNode.targetValue = subList[0].targetValue
-                currNode.childrenNodes[subListKey] = childNode
+            if currNode == None: # rootptr
+                currNode = TreeNode(divisionAttribute.attrName)
             else:
-                currNode.childrenNodes[subListKey] = childNode
-                # recursively build using each sublist
-                self.buildSubTree(subList, childNode)
-        #return the root node with everything built on
-        return currNode
+                currNode.name = divisionAttribute.attrName
+            # divide up our data based on the attribute we got back
+            subLists = {}
+            key1 = "<{}".format(divisionAttribute.attrValues[0])
+            key2 = ">{}".format(divisionAttribute.attrValues[0])
+            subLists[key1] = []
+            subLists[key2] = []
+            # filter out data into the right sublists
+            for examplePoint in trainingExamples:
+                # find the right attribute in the example point
+                for attribute in examplePoint.attributes:
+                    if attribute.attrName == divisionAttribute.attrName:
+                        if float(attribute.attrValues[0]) < float(divisionAttribute.attrValues[0]):
+                            subLists[key1].append(examplePoint)
+                        elif float(attribute.attrValues[0]) > float(divisionAttribute.attrValues[0]):
+                            subLists[key2].append(examplePoint)
+            # check if any of the sublists would require us to return a leaf node
+            for subListKey in subLists:
+                childNode = TreeNode()
+                subList = subLists[subListKey]
+                if subList == []: # no training examples, default to most common target value
+                    childNode.isLeaf = True
+                    childNode.targetValue = "Iris-setosa"
+                    currNode.childrenNodes[subListKey] = childNode
+                elif self.isLeafNode(subList):
+                    childNode.isLeaf = True
+                    childNode.targetValue = subList[0].targetValue
+                    currNode.childrenNodes[subListKey] = childNode
+                else:
+                    currNode.childrenNodes[subListKey] = childNode
+                    # recursively build using each sublist
+                    self.buildSubTree(subList, childNode)
+            #return the root node with everything built on
+            return currNode
+
+    def breakPointExists(self, subList, attribute):
+        """
+        @param subList: a set of data that we check for the existance of a break point
+        """
+        breakPoints = self.getBreakPoints(subList, attribute)
+        return breakPoints == []
 
     def isLeafNode(self, subList):
         """
@@ -197,6 +223,25 @@ class DecisionTree(object):
                 currMaxGain = gainForAttribute
         return currMaxAttr
 
+    def getDivisionAttributeNumeric(self, dataSet):
+        breakPoints = []
+        for i, attribute in enumerate(self.attributesAndValues):
+            # get max breakpoint for this attribute
+            maxBreakPoint, maxGain = self.calculateNumericBreakpoint(dataSet, attribute)
+            if maxBreakPoint == None:
+                return None
+            breakPoints.append([i, attribute, maxBreakPoint, maxGain])
+        # now find out which attribute gives us the most gain
+        maxGain = breakPoints[0][3]
+        bestBreak = breakPoints[0]
+        for breakPoint in breakPoints:
+            if breakPoint[3] > maxGain:
+                maxGain = breakPoint[3]
+                bestBreak = breakPoint
+        # now i have the best breakpoint / attribute
+        self.attributesAndValues[bestBreak[0]].attrValues = [bestBreak[2].avg]
+        return self.attributesAndValues[bestBreak[0]]
+
     def calculateEntropy(self, dataSet, attribute):
         """
         @param exampleData: a list of TrainingExamples -> given the node we are at.
@@ -207,8 +252,6 @@ class DecisionTree(object):
             # this is the first node, so use all of the training examples
             targetValueCounts = self.getTargetValueCounts(dataSet, "initial", None)
             attributesValuesAndEntropy["initial"] = self.calculateEntropyForumla(targetValueCounts)
-        elif attribute.isNumeric:
-            return self.calculateNumericEntropy(dataSet, attribute)
         else:
             # this is not the first node, and we have multiple attribute values to consider
             for attribValue in attribute.attrValues:
@@ -217,7 +260,7 @@ class DecisionTree(object):
 
         return attributesValuesAndEntropy 
 
-    def calculateNumericEntropy(self, dataSet, attribute):
+    def getBreakPoints(self, dataSet, attribute):
         breakPoints = []
         attributeIndexInDataPoint = None
         # build our list of tuples 
@@ -243,7 +286,16 @@ class DecisionTree(object):
                 attrName2 = ">{}".format(avg)
                 bp = BreakPoint(avg, attrName1, attrName2)
                 breakPoints.append(bp)
+        return breakPoints, attributeIndexInDataPoint
+
+    def calculateNumericBreakpoint(self, dataSet, attribute):
+        breakPoints, attributeIndexInDataPoint = self.getBreakPoints(dataSet, attribute)
+        if breakPoints == []:
+            # cant divide this data, return none
+            return None, None
         # we now have all breakpoints - calc entropy on breakpoints
+        maxBreak = breakPoints[0]
+        maxGain = 0
         for breakPoint in breakPoints:
             # divide the data
             list1 = []
@@ -261,7 +313,10 @@ class DecisionTree(object):
             entropy2 = self.calculateEntropyForumla(entropy2TargetValueCounts)
             maxEntropy = self.calculateEntropy(dataSet, None)["initial"][1]
             gain = maxEntropy - float(entropy1[0])/len(dataSet) * float(entropy1[1]) - float(entropy2[0])/len(dataSet) * float(entropy2[1])
-            print(gain)
+            if gain > maxGain:
+                maxGain = gain
+                maxBreak = breakPoint
+        return maxBreak, maxGain
         
     def getTargetValueCounts(self, dataSet, attributeName, attributeValue, isNumericData=(False, None)):
         """
