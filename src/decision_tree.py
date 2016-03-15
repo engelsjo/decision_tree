@@ -364,6 +364,8 @@ def main(argv):
     # tests
     #results = tree.predictAllExamplesInFile(argv[2])
     #tree.predictedRate(results)
+    # results = tree.predictAllExamplesInFile(argv[2])
+    # tree.predictedRate(results)
     # export the dictionary to a json file
     with open('../viz/data/decision_tree.json', 'w') as jsonfile:
         json.dump(tree.vizBetterNode, jsonfile)

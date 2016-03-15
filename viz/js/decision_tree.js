@@ -4,9 +4,11 @@
  * Purpose: Interactive Decision Tree using d3.js
  */
 
+// http://codepen.io/SpencerCooley/pen/JtiFL
+
 var data; // a global
 
-d3.json("../data/decision_tree.json", function(error, json) {
+d3.json(datasetFile, function(error, json) {
     if (error) return console.warn(error);
     data = [json]; // store object inside array
     generate();
@@ -19,22 +21,27 @@ var root;
 var i;
 var duration;
 
+// color styling
+var nodeFillChildren = "#CE0000";
+var nodeFillNoChildren = "#DEE7EF";
+
 function generate() {
 // ************** Generate the tree diagram	 *****************
-    var margin = {top: 20, right: 120, bottom: 20, left: 120},
-        width = 960 - margin.right - margin.left,
-        height = 500 - margin.top - margin.bottom;
+    var margin = {top: 50, right: 50, bottom: 50, left: 50},
+        width = 800 - margin.right - margin.left,
+        height = 800 - margin.top - margin.bottom;
 
     i = 0;
-    duration = 750;
-        //root;
+    duration = 500; // milliseconds for animation
 
     tree = d3.layout.tree()
         .size([height, width]);
 
+    // http://stackoverflow.com/questions/15007877/how-to-use-the-d3-diagonal-function-to-draw-curved-lines
+    // http://bl.ocks.org/d3noob/8326869
     diagonal = d3.svg.diagonal()
         .projection(function (d) {
-            return [d.y, d.x];
+            return [d.x, d.y];  // top-down
         });
 
     svg = d3.select("#decision_tree").append("svg")
@@ -43,12 +50,14 @@ function generate() {
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+    // set the root
     root = data[0];
-    root.x0 = height / 2;
+    root.x0 = width / 2;
     root.y0 = 0;
 
     update(root);
 
+    // http://stackoverflow.com/questions/22448032/d3-what-is-the-self-as-in-d3-selectself-frameelement-styleheight-height/22449389#22449389
     d3.select(self.frameElement).style("height", "500px");
 }
 
@@ -59,7 +68,7 @@ function update(source) {
         links = tree.links(nodes);
 
     // Normalize for fixed-depth.
-    nodes.forEach(function(d) { d.y = d.depth * 180; });
+    nodes.forEach(function(d) { d.y = d.depth * 80; }); // depth of each level of tree
 
     // Update the nodes…
     var node = svg.selectAll("g.node")
@@ -68,28 +77,29 @@ function update(source) {
     // Enter any new nodes at the parent's previous position.
     var nodeEnter = node.enter().append("g")
         .attr("class", "node")
-        .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
+        .attr("transform", function(d) { return "translate(" + source.x0 + "," + source.y0 + ")"; })
         .on("click", click);
 
     nodeEnter.append("circle")
         .attr("r", 1e-6)
-        .style("fill", function(d) { return d._children ? "#663300" : "#ffffff"; });
+        .style("fill", function(d) { return d._children ? nodeFillChildren : nodeFillNoChildren; });
 
     nodeEnter.append("text")
-        .attr("x", function(d) { return d.children || d._children ? -13 : 13; })
+        .attr("y", function(d) { return d.children || d._children ? -18 : 18; })
         .attr("dy", ".35em")
-        .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
+        .attr("text-anchor", function(d) { return d.children || d._children ? "middle" : "middle"; })
         .text(function(d) { return d.name; })
-        .style("fill-opacity", 1e-6);
+        .style("fill-opacity", 1)
+        .style("font-weight", "bold");
 
     // Transition nodes to their new position.
     var nodeUpdate = node.transition()
         .duration(duration)
-        .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
+        .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
 
     nodeUpdate.select("circle")
         .attr("r", 10)
-        .style("fill", function(d) { return d._children ? "#663300" : "#ffffff"; });
+        .style("fill", function(d) { return d._children ? nodeFillChildren : nodeFillNoChildren; });
 
     nodeUpdate.select("text")
         .style("fill-opacity", 1);
@@ -97,7 +107,7 @@ function update(source) {
     // Transition exiting nodes to the parent's new position.
     var nodeExit = node.exit().transition()
         .duration(duration)
-        .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
+        .attr("transform", function(d) { return "translate(" + source.x + "," + source.y + ")"; })
         .remove();
 
     nodeExit.select("circle")
