@@ -1,5 +1,10 @@
 """
 @authors: Michael Baldwin, Josh Engelsma, Adam Terwilliger
+@date: March 15, 2016
+@version: 1.0
+This program builds out a decision tree from training data, and then allows us to make
+future predictions on new data we encounter. The program is different from our other tree in that
+the data that we process is numeric data
 """
 
 import sys
@@ -21,7 +26,8 @@ class NumericTree(object):
 
     def buildTree(self, trainingExamples, currVizNode):
         """
-        method to build our tree with better labeling
+        this method is our recursive method to build our tree - it outputs our 
+        python datastructure that can be exported to the json we need to build our viz
         """
         divisionAttribute = self.getDivisionAttributeNumeric(trainingExamples)
         # divide up our data based on the attribute we got back
@@ -111,6 +117,9 @@ class NumericTree(object):
         return True
 
     def getDivisionAttributeNumeric(self, dataSet):
+        """
+        returns to us the attribute that we need to divide on.
+        """
         breakPoints = []
         for i, attribute in enumerate(self.attributesAndValues):
             # get max breakpoint for this attribute
@@ -130,6 +139,9 @@ class NumericTree(object):
         return self.attributesAndValues[bestBreak[0]]
 
     def getBreakPoints(self, dataSet, attribute):
+        """
+        returns to us a list of all possible breakpoints 
+        """
         breakPoints = []
         attributeIndexInDataPoint = None
         # build our list of tuples 
@@ -158,6 +170,9 @@ class NumericTree(object):
         return breakPoints, attributeIndexInDataPoint
 
     def calculateNumericBreakpoint(self, dataSet, attribute):
+        """
+        returns to us a single breakpoint for an attribute on a dataset
+        """
         breakPoints, attributeIndexInDataPoint = self.getBreakPoints(dataSet, attribute)
         if breakPoints == []:
             # cant divide this data, return none
@@ -241,6 +256,9 @@ class NumericTree(object):
         return (totalNbrMatchingAttributeValue,entropy)
 
     def readFile(self, dataFilePath):
+        """
+        helper method to read in our file, storing training examples and attributes in the correct classes
+        """
         targetNames = attributes = examples = None
         with open(dataFilePath, "r") as fh:
             nbrOfTargets = int(fh.readline().strip())

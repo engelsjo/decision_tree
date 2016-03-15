@@ -1,5 +1,9 @@
 """
 @authors: Michael Baldwin, Josh Engelsma, Adam Terwilliger
+@date: March 15, 2016
+@version: 1.0
+This program builds out a decision tree from training data, and then allows us to make
+future predictions on new data we encounter.
 """
 
 import sys
@@ -21,6 +25,10 @@ class DecisionTree(object):
         self.vizBetterNode = self.buildTree(self.trainingExamples, {'name' : 'Root', 'parent' : None})
 
     def pretty_print(self):
+        """
+        This method uses BFS algorithm to print out our 
+        tree structure in level order. Useful for debugging
+        """
         # use a BFS algorithm to print out level order
         q = Queue();
         q.enqueue(self.rootNode)
@@ -34,7 +42,8 @@ class DecisionTree(object):
 
     def buildTree(self, trainingExamples, currVizNode):
         """
-        method to build our tree with better labeling
+        this method performs very similar work to buildSubTree, but labels the nodes slightly different, and it outputs our 
+        python datastructure that can be exported to the json we need to build our viz
         """
         divisionAttribute = self.getDivisionAttribute(trainingExamples)
         # divide up our data based on the attribute we got back
@@ -75,7 +84,7 @@ class DecisionTree(object):
 
     def buildSubTree(self, trainingExamples, currNode):
         """
-        method to build our tree
+        method to build our tree - this build method uses OO concepts which we use during our prediction later on
         """
         if self.attributesAndValues == []:
             return currNode
@@ -123,6 +132,9 @@ class DecisionTree(object):
         return True
 
     def getDivisionAttribute(self, dataSet):
+        """
+        returns the attribute that we need to perform division on
+        """
         maxEntropy = self.calculateEntropy(dataSet, None)["initial"][1]
         currMaxGain = 0
         currMaxAttr = None
@@ -182,6 +194,9 @@ class DecisionTree(object):
             return targetValueCounts
 
     def doesExampleMatchAttribVal(self, examplePoint, attributeName, attributeValue):
+        """
+        Determine if the attribute in examplePoint matches
+        """
         for attribute in examplePoint.attributes:
             if attribute.attrName == attributeName and attribute.attrValues[0] == attributeValue:
                 return True
@@ -276,6 +291,10 @@ class DecisionTree(object):
         print("Correct: {}\nTotal: {}\nPercentage: {}%\n".format(nbrCorrect, len(listOfResults), float(nbrCorrect) / float(len(listOfResults))))
 
     def readFile(self, dataFilePath):
+        """
+        @param dataFilePath: path to our dataSet
+        Method reads in our data, and stores example points and attributes in approp fields
+        """
         targetNames = attributes = examples = None
         with open(dataFilePath, "r") as fh:
             nbrOfTargets = int(fh.readline().strip())
