@@ -19,7 +19,9 @@ def main(argv):
         	lineParts = line.strip("\n").split(",")
         	#irisDict[(lineParts[4], i)] = [float(lineParts[0]), float(lineParts[1]),
         	#							float(lineParts[2]), float(lineParts[3])]
-        	for j in range(4):
+        	
+            
+            for j in range(4):
         		irisMatrix[i,j] = float(lineParts[j])
         	i +=1
     
