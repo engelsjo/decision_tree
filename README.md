@@ -18,6 +18,7 @@
 ### [Fishing](http://cis.gvsu.edu/~baldwmic/cis678/project3/viz/demos/fishing.html)
 ### [Contact Lenses](http://cis.gvsu.edu/~baldwmic/cis678/project3/viz/demos/contact_lenses.html)
 ### [Mushrooms](http://cis.gvsu.edu/~baldwmic/cis678/project3/viz/demos/mushrooms.html)
+### [Iris](http://cis.gvsu.edu/~baldwmic/cis678/project3/viz/demos/iris.html)
 
 ## Datasets
 ### [Mushrooms Dataset](https://archive.ics.uci.edu/ml/datasets/Mushroom)
