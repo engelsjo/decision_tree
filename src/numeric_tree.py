@@ -5,58 +5,12 @@
 import sys
 import math
 import json
+from training_example import TrainingExample
+from numeric_attribute import NumericAttribute
+from node import TreeNode
+from breakpoint import BreakPoint
 
-class TrainingExample(object):
-    def __init__(self, attributes, targetValue):
-        # self.attributes will be a list of Attribute objects where each attribute has a list of 1 value
-        self.attributes = attributes
-        self.targetValue = targetValue
-
-    def __str__(self):
-        return "\n***EXAMPLE DATA POINT***\nTraining Values:\n {}\nTargetValues: {}\n".format(self.attributes, self.targetValue)
-
-    def __repr__(self):
-        return str(self)
-
-class NumericAttribute(object):
-    def __init__(self, attrName, attrValues):
-        self.attrName = attrName
-        self.attrValues = attrValues
-        # a list of tuples
-        self.numericValues = []
-        self.isNumeric = False
-
-    def __str__(self):
-        return "Attribute Name: {} || AttributeValue(s): {}\n".format(self.attrName, self.attrValues)
-
-    def __repr__(self):
-        return str(self)
-
-class BreakPoint(object):
-    def __init__(self, avg, name1, name2):
-        self.avg = avg
-        self.name1 = name1
-        self.name2 = name2
-
-    def __str__(self):
-        return "AVG: {} Name1: {} Name2: {}".format(self.avg, self.name1, self.name2)
-
-class TreeNode(object):
-    def __init__(self, name=None):
-        self.name = name
-        self.isLeaf = False
-        self.targetValue = None
-        self.childrenNodes = {}
-
-    def __str__(self):
-        if not self.isLeaf:
-            return "NODE: {} - Branches: {} ".format(self.name, self.childrenNodes.keys())
-        return "** LeafNode ** Target: {} ".format(self.targetValue)
-
-    def __repr__(self):
-        return str(self)
-
-class DecisionTree(object):
+class NumericTree(object):
     def __init__(self, dataFilePath, targetNames=None, attributesAndValues=None, trainingExamples=None):
         self.targetNames = targetNames
         self.attributesAndValues = attributesAndValues
@@ -343,7 +297,7 @@ class DecisionTree(object):
 def main(argv):
     if len(argv) < 2:
         print(usage())
-    tree = DecisionTree(argv[1])
+    tree = NumericTree(argv[1])
     with open('../viz/data/decision_tree.json', 'w') as jsonfile:
         json.dump(tree.vizBetterNode, jsonfile)
     

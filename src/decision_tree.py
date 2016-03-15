@@ -5,60 +5,10 @@
 import sys
 import math
 import json
-
-class Queue:
-    def __init__(self):
-        self.items = []
-
-    def isEmpty(self):
-        return self.items == []
-
-    def enqueue(self, item):
-        self.items.insert(0,item)
-
-    def dequeue(self):
-        return self.items.pop()
-
-    def size(self):
-        return len(self.items)
-
-class TrainingExample(object):
-    def __init__(self, attributes, targetValue):
-        # self.attributes will be a list of Attribute objects where each attribute has a list of 1 value
-        self.attributes = attributes
-        self.targetValue = targetValue
-
-    def __str__(self):
-        return "\n***EXAMPLE DATA POINT***\nTraining Values:\n {}\nTargetValues: {}\n".format(self.attributes, self.targetValue)
-
-    def __repr__(self):
-        return str(self)
-
-class Attribute(object):
-    def __init__(self, attrName, attrValues):
-        self.attrName = attrName
-        self.attrValues = attrValues
-
-    def __str__(self):
-        return "Attribute Name: {} || AttributeValue(s): {}\n".format(self.attrName, self.attrValues)
-
-    def __repr__(self):
-        return str(self)
-
-class TreeNode(object):
-    def __init__(self, name=None):
-        self.name = name
-        self.isLeaf = False
-        self.targetValue = None
-        self.childrenNodes = {}
-
-    def __str__(self):
-        if not self.isLeaf:
-            return "NODE: {} - Branches: {} ".format(self.name, self.childrenNodes.keys())
-        return "** LeafNode ** Target: {} ".format(self.targetValue)
-
-    def __repr__(self):
-        return str(self)
+from training_example import TrainingExample
+from jdawg_queue import Queue
+from attribute import Attribute
+from node import TreeNode
 
 class DecisionTree(object):
     def __init__(self, dataFilePath, targetNames=None, attributesAndValues=None, trainingExamples=None):
