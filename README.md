@@ -2,13 +2,6 @@
 
 ## Contributors: Michael Baldwin, Josh Engelsma, Adam Terwilliger
 
-## TODO
-### Required
-- design doc
-
-### Extra
-- numeric with iris dataset
-
 ### Future Work
 - weighted training data
 - alternative splitting functions
