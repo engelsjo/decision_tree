@@ -1,64 +1,18 @@
 """
 @authors: Michael Baldwin, Josh Engelsma, Adam Terwilliger
+@date: March 15, 2016
+@version: 1.0
+This program builds out a decision tree from training data, and then allows us to make
+future predictions on new data we encounter.
 """
 
 import sys
 import math
 import json
-
-class Queue:
-    def __init__(self):
-        self.items = []
-
-    def isEmpty(self):
-        return self.items == []
-
-    def enqueue(self, item):
-        self.items.insert(0,item)
-
-    def dequeue(self):
-        return self.items.pop()
-
-    def size(self):
-        return len(self.items)
-
-class TrainingExample(object):
-    def __init__(self, attributes, targetValue):
-        # self.attributes will be a list of Attribute objects where each attribute has a list of 1 value
-        self.attributes = attributes
-        self.targetValue = targetValue
-
-    def __str__(self):
-        return "\n***EXAMPLE DATA POINT***\nTraining Values:\n {}\nTargetValues: {}\n".format(self.attributes, self.targetValue)
-
-    def __repr__(self):
-        return str(self)
-
-class Attribute(object):
-    def __init__(self, attrName, attrValues):
-        self.attrName = attrName
-        self.attrValues = attrValues
-
-    def __str__(self):
-        return "Attribute Name: {} || AttributeValue(s): {}\n".format(self.attrName, self.attrValues)
-
-    def __repr__(self):
-        return str(self)
-
-class TreeNode(object):
-    def __init__(self, name=None):
-        self.name = name
-        self.isLeaf = False
-        self.targetValue = None
-        self.childrenNodes = {}
-
-    def __str__(self):
-        if not self.isLeaf:
-            return "NODE: {} - Branches: {} ".format(self.name, self.childrenNodes.keys())
-        return "** LeafNode ** Target: {} ".format(self.targetValue)
-
-    def __repr__(self):
-        return str(self)
+from training_example import TrainingExample
+from jdawg_queue import Queue
+from attribute import Attribute
+from node import TreeNode
 
 class DecisionTree(object):
     def __init__(self, dataFilePath, targetNames=None, attributesAndValues=None, trainingExamples=None):
@@ -71,6 +25,10 @@ class DecisionTree(object):
         self.vizBetterNode = self.buildTree(self.trainingExamples, {'name' : 'Root', 'parent' : None})
 
     def pretty_print(self):
+        """
+        This method uses BFS algorithm to print out our 
+        tree structure in level order. Useful for debugging
+        """
         # use a BFS algorithm to print out level order
         q = Queue();
         q.enqueue(self.rootNode)
@@ -84,7 +42,8 @@ class DecisionTree(object):
 
     def buildTree(self, trainingExamples, currVizNode):
         """
-        method to build our tree with better labeling
+        this method performs very similar work to buildSubTree, but labels the nodes slightly different, and it outputs our 
+        python datastructure that can be exported to the json we need to build our viz
         """
         divisionAttribute = self.getDivisionAttribute(trainingExamples)
         # divide up our data based on the attribute we got back
@@ -108,7 +67,7 @@ class DecisionTree(object):
                 for child in currVizNode['children']:
                     if child['name'].split('~')[1].strip() == subListKey:
                         # create and append my leaf node
-                        leaf = {'name' : 'Decision: {}'.format("e"), 'parent' : child['name']}
+                        leaf = {'name' : 'Decision: {}'.format("p"), 'parent' : child['name']}
                         child['children'].append(leaf)
             elif not self.isLeafNode(subList):
                 for child in currVizNode['children']:
@@ -125,7 +84,7 @@ class DecisionTree(object):
 
     def buildSubTree(self, trainingExamples, currNode):
         """
-        method to build our tree
+        method to build our tree - this build method uses OO concepts which we use during our prediction later on
         """
         if self.attributesAndValues == []:
             return currNode
@@ -149,7 +108,7 @@ class DecisionTree(object):
             subList = subLists[subListKey]
             if subList == []: # no training examples, default to most common target value
                 childNode.isLeaf = True
-                childNode.targetValue = "e"
+                childNode.targetValue = "p"
                 currNode.childrenNodes[subListKey] = childNode
             elif self.isLeafNode(subList):
                 childNode.isLeaf = True
@@ -173,6 +132,9 @@ class DecisionTree(object):
         return True
 
     def getDivisionAttribute(self, dataSet):
+        """
+        returns the attribute that we need to perform division on
+        """
         maxEntropy = self.calculateEntropy(dataSet, None)["initial"][1]
         currMaxGain = 0
         currMaxAttr = None
@@ -232,6 +194,9 @@ class DecisionTree(object):
             return targetValueCounts
 
     def doesExampleMatchAttribVal(self, examplePoint, attributeName, attributeValue):
+        """
+        Determine if the attribute in examplePoint matches
+        """
         for attribute in examplePoint.attributes:
             if attribute.attrName == attributeName and attribute.attrValues[0] == attributeValue:
                 return True
@@ -326,6 +291,10 @@ class DecisionTree(object):
         print("Correct: {}\nTotal: {}\nPercentage: {}%\n".format(nbrCorrect, len(listOfResults), float(nbrCorrect) / float(len(listOfResults))))
 
     def readFile(self, dataFilePath):
+        """
+        @param dataFilePath: path to our dataSet
+        Method reads in our data, and stores example points and attributes in approp fields
+        """
         targetNames = attributes = examples = None
         with open(dataFilePath, "r") as fh:
             nbrOfTargets = int(fh.readline().strip())
@@ -368,10 +337,8 @@ def main(argv):
         print(usage())
     tree = DecisionTree(argv[1])
     # tests
-    #results = tree.predictAllExamplesInFile(argv[2])
-    #tree.predictedRate(results)
-    # results = tree.predictAllExamplesInFile(argv[2])
-    # tree.predictedRate(results)
+    results = tree.predictAllExamplesInFile(argv[2])
+    tree.predictedRate(results)
     # export the dictionary to a json file
     with open('../viz/data/decision_tree.json', 'w') as jsonfile:
         json.dump(tree.vizBetterNode, jsonfile)

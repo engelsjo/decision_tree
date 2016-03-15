@@ -1,118 +1,65 @@
 """
 @authors: Michael Baldwin, Josh Engelsma, Adam Terwilliger
+@date: March 15, 2016
+@version: 1.0
+This program builds out a decision tree from training data, and then allows us to make
+future predictions on new data we encounter. The program is different from our other tree in that
+the data that we process is numeric data
 """
 
 import sys
 import math
 import json
+from training_example import TrainingExample
+from numeric_attribute import NumericAttribute
+from node import TreeNode
+from breakpoint import BreakPoint
 
-class Queue:
-    def __init__(self):
-        self.items = []
-
-    def isEmpty(self):
-        return self.items == []
-
-    def enqueue(self, item):
-        self.items.insert(0,item)
-
-    def dequeue(self):
-        return self.items.pop()
-
-    def size(self):
-        return len(self.items)
-
-class TrainingExample(object):
-    def __init__(self, attributes, targetValue):
-        # self.attributes will be a list of Attribute objects where each attribute has a list of 1 value
-        self.attributes = attributes
-        self.targetValue = targetValue
-
-    def __str__(self):
-        return "\n***EXAMPLE DATA POINT***\nTraining Values:\n {}\nTargetValues: {}\n".format(self.attributes, self.targetValue)
-
-    def __repr__(self):
-        return str(self)
-
-class Attribute(object):
-    def __init__(self, attrName, attrValues):
-        self.attrName = attrName
-        self.attrValues = attrValues
-        # a list of tuples
-        self.numericValues = []
-        self.isNumeric = False
-
-    def __str__(self):
-        return "Attribute Name: {} || AttributeValue(s): {}\n".format(self.attrName, self.attrValues)
-
-    def __repr__(self):
-        return str(self)
-
-class BreakPoint(object):
-    def __init__(self, avg, name1, name2):
-        self.avg = avg
-        self.name1 = name1
-        self.name2 = name2
-
-    def __str__(self):
-        return "AVG: {} Name1: {} Name2: {}".format(self.avg, self.name1, self.name2)
-
-class TreeNode(object):
-    def __init__(self, name=None):
-        self.name = name
-        self.isLeaf = False
-        self.targetValue = None
-        self.childrenNodes = {}
-
-    def __str__(self):
-        if not self.isLeaf:
-            return "NODE: {} - Branches: {} ".format(self.name, self.childrenNodes.keys())
-        return "** LeafNode ** Target: {} ".format(self.targetValue)
-
-    def __repr__(self):
-        return str(self)
-
-class DecisionTree(object):
+class NumericTree(object):
     def __init__(self, dataFilePath, targetNames=None, attributesAndValues=None, trainingExamples=None):
         self.targetNames = targetNames
         self.attributesAndValues = attributesAndValues
         self.trainingExamples = trainingExamples
         if not targetNames or not attributesAndValues or not trainingExamples:
             self.readFile(dataFilePath)
-        self.rootNode = self.buildSubTree(self.trainingExamples, None)
         self.vizBetterNode = self.buildTree(self.trainingExamples, {'name' : 'Root', 'parent' : None})
-
-    def pretty_print(self):
-        # use a BFS algorithm to print out level order
-        q = Queue();
-        q.enqueue(self.rootNode)
-        while (q.size() > 0):
-            node = q.dequeue();
-            print(node)
-            for childrenKey in node.childrenNodes.keys():
-                childNode = node.childrenNodes[childrenKey]
-                if not childNode.isLeaf:
-                    q.enqueue(childNode)
 
     def buildTree(self, trainingExamples, currVizNode):
         """
-        method to build our tree with better labeling
+        this method is our recursive method to build our tree - it outputs our 
+        python datastructure that can be exported to the json we need to build our viz
         """
-        divisionAttribute = self.getDivisionAttribute(trainingExamples)
+        divisionAttribute = self.getDivisionAttributeNumeric(trainingExamples)
         # divide up our data based on the attribute we got back
+        if divisionAttribute == None: 
+            # leaf node
+            if 'children' not in currVizNode:    
+                currVizNode['children'] = []  
+            leaf = {'name' : 'Decision: {}'.format(trainingExamples[1].targetValue), 'parent' : currVizNode['name']} 
+            currVizNode['children'].append(leaf)
+            return currVizNode
         subLists = {}
-        for attrValue in divisionAttribute.attrValues:
-            subLists[attrValue] = []
-        for example in trainingExamples:
-            # if the example attribute matches our division attributes, add training example to correct sublist
-            for attribute in example.attributes:
+        key1 = "<{}".format(divisionAttribute.attrValues[0])
+        key2 = ">{}".format(divisionAttribute.attrValues[0])
+        subLists[key1] = []
+        subLists[key2] = []
+        # filter out data into the right sublists
+        for examplePoint in trainingExamples:
+            # find the right attribute in the example point
+            for attribute in examplePoint.attributes:
                 if attribute.attrName == divisionAttribute.attrName:
-                    subLists[attribute.attrValues[0]].append(example)
+                    if float(attribute.attrValues[0]) < float(divisionAttribute.attrValues[0]):
+                        subLists[key1].append(examplePoint)
+                    elif float(attribute.attrValues[0]) > float(divisionAttribute.attrValues[0]):
+                        subLists[key2].append(examplePoint)
         # assign all children for the current node
         if 'children' not in currVizNode:    
             currVizNode['children'] = []
-        for val in divisionAttribute.attrValues:
-            currVizNode['children'].append({'name' : "{} ~ {}".format(divisionAttribute.attrName, val), 'parent' : currVizNode['name'], 'children' : []})
+        breakVal = divisionAttribute.attrValues[0]
+        child1Name = "<{}".format(breakVal)
+        child2Name = ">{}".format(breakVal)
+        currVizNode['children'].append({'name' : "{} ~ {}".format(divisionAttribute.attrName, child1Name), 'parent' : currVizNode['name'], 'children' : []})
+        currVizNode['children'].append({'name' : "{} ~ {}".format(divisionAttribute.attrName, child2Name), 'parent' : currVizNode['name'], 'children' : []})
         # recursively build for each sublist
         for subListKey in subLists:
             subList = subLists[subListKey]
@@ -135,44 +82,29 @@ class DecisionTree(object):
                         child['children'].append(leaf)
         return currVizNode
 
-    def buildSubTree(self, trainingExamples, currNode):
+    def calculateEntropy(self, dataSet, attribute):
         """
-        method to build our tree
+        @param exampleData: a list of TrainingExamples -> given the node we are at.
         """
-        if self.attributesAndValues == []:
-            return currNode
-        divisionAttribute = self.getDivisionAttribute(trainingExamples)
-        if currNode == None: # rootptr
-            currNode = TreeNode(divisionAttribute.attrName)
+        attributesValuesAndEntropy = {}
+        if not attribute:
+            # this is the first node, so use all of the training examples
+            targetValueCounts = self.getTargetValueCounts(dataSet, "initial", None)
+            attributesValuesAndEntropy["initial"] = self.calculateEntropyForumla(targetValueCounts)
         else:
-            currNode.name = divisionAttribute.attrName
-        # divide up our data based on the attribute we got back
-        subLists = {}
-        for attrValue in divisionAttribute.attrValues:
-            subLists[attrValue] = []
-        for example in trainingExamples:
-            # if the example attribute matches our division attributes, add training example to correct sublist
-            for attribute in example.attributes:
-                if attribute.attrName == divisionAttribute.attrName:
-                    subLists[attribute.attrValues[0]].append(example)
-        # check if any of the sublists would require us to return a leaf node
-        for subListKey in subLists:
-            childNode = TreeNode()
-            subList = subLists[subListKey]
-            if subList == []: # no training examples, default to most common target value
-                childNode.isLeaf = True
-                childNode.targetValue = "e"
-                currNode.childrenNodes[subListKey] = childNode
-            elif self.isLeafNode(subList):
-                childNode.isLeaf = True
-                childNode.targetValue = subList[0].targetValue
-                currNode.childrenNodes[subListKey] = childNode
-            else:
-                currNode.childrenNodes[subListKey] = childNode
-                # recursively build using each sublist
-                self.buildSubTree(subList, childNode)
-        #return the root node with everything built on
-        return currNode
+            # this is not the first node, and we have multiple attribute values to consider
+            for attribValue in attribute.attrValues:
+                targetValueCounts = self.getTargetValueCounts(dataSet, attribute.attrName, attribValue)
+                attributesValuesAndEntropy[attribValue] = self.calculateEntropyForumla(targetValueCounts)
+
+        return attributesValuesAndEntropy 
+
+    def breakPointExists(self, subList, attribute):
+        """
+        @param subList: a set of data that we check for the existance of a break point
+        """
+        breakPoints = self.getBreakPoints(subList, attribute)
+        return breakPoints == []
 
     def isLeafNode(self, subList):
         """
@@ -184,40 +116,32 @@ class DecisionTree(object):
                 return False
         return True
 
-    def getDivisionAttribute(self, dataSet):
-        maxEntropy = self.calculateEntropy(dataSet, None)["initial"][1]
-        currMaxGain = 0
-        currMaxAttr = None
+    def getDivisionAttributeNumeric(self, dataSet):
+        """
+        returns to us the attribute that we need to divide on.
+        """
+        breakPoints = []
         for i, attribute in enumerate(self.attributesAndValues):
-            # calculate the info gain for this attribute
-            attributeValuesAndEntropy = self.calculateEntropy(dataSet, attribute)
-            gainForAttribute = self.calculateGain(maxEntropy, len(dataSet), attributeValuesAndEntropy)
-            if gainForAttribute >= currMaxGain:
-                currMaxAttr = attribute
-                currMaxGain = gainForAttribute
-        return currMaxAttr
+            # get max breakpoint for this attribute
+            maxBreakPoint, maxGain = self.calculateNumericBreakpoint(dataSet, attribute)
+            if maxBreakPoint == None:
+                return None
+            breakPoints.append([i, attribute, maxBreakPoint, maxGain])
+        # now find out which attribute gives us the most gain
+        maxGain = breakPoints[0][3]
+        bestBreak = breakPoints[0]
+        for breakPoint in breakPoints:
+            if breakPoint[3] > maxGain:
+                maxGain = breakPoint[3]
+                bestBreak = breakPoint
+        # now i have the best breakpoint / attribute
+        self.attributesAndValues[bestBreak[0]].attrValues = [bestBreak[2].avg]
+        return self.attributesAndValues[bestBreak[0]]
 
-    def calculateEntropy(self, dataSet, attribute):
+    def getBreakPoints(self, dataSet, attribute):
         """
-        @param exampleData: a list of TrainingExamples -> given the node we are at.
-        @return 
+        returns to us a list of all possible breakpoints 
         """
-        attributesValuesAndEntropy = {}
-        if not attribute:
-            # this is the first node, so use all of the training examples
-            targetValueCounts = self.getTargetValueCounts(dataSet, "initial", None)
-            attributesValuesAndEntropy["initial"] = self.calculateEntropyForumla(targetValueCounts)
-        elif attribute.isNumeric:
-            return self.calculateNumericEntropy(dataSet, attribute)
-        else:
-            # this is not the first node, and we have multiple attribute values to consider
-            for attribValue in attribute.attrValues:
-                targetValueCounts = self.getTargetValueCounts(dataSet, attribute.attrName, attribValue)
-                attributesValuesAndEntropy[attribValue] = self.calculateEntropyForumla(targetValueCounts)
-
-        return attributesValuesAndEntropy 
-
-    def calculateNumericEntropy(self, dataSet, attribute):
         breakPoints = []
         attributeIndexInDataPoint = None
         # build our list of tuples 
@@ -243,7 +167,19 @@ class DecisionTree(object):
                 attrName2 = ">{}".format(avg)
                 bp = BreakPoint(avg, attrName1, attrName2)
                 breakPoints.append(bp)
+        return breakPoints, attributeIndexInDataPoint
+
+    def calculateNumericBreakpoint(self, dataSet, attribute):
+        """
+        returns to us a single breakpoint for an attribute on a dataset
+        """
+        breakPoints, attributeIndexInDataPoint = self.getBreakPoints(dataSet, attribute)
+        if breakPoints == []:
+            # cant divide this data, return none
+            return None, None
         # we now have all breakpoints - calc entropy on breakpoints
+        maxBreak = breakPoints[0]
+        maxGain = 0
         for breakPoint in breakPoints:
             # divide the data
             list1 = []
@@ -261,7 +197,10 @@ class DecisionTree(object):
             entropy2 = self.calculateEntropyForumla(entropy2TargetValueCounts)
             maxEntropy = self.calculateEntropy(dataSet, None)["initial"][1]
             gain = maxEntropy - float(entropy1[0])/len(dataSet) * float(entropy1[1]) - float(entropy2[0])/len(dataSet) * float(entropy2[1])
-            print(gain)
+            if gain > maxGain:
+                maxGain = gain
+                maxBreak = breakPoint
+        return maxBreak, maxGain
         
     def getTargetValueCounts(self, dataSet, attributeName, attributeValue, isNumericData=(False, None)):
         """
@@ -293,8 +232,6 @@ class DecisionTree(object):
                         if attribute.attrName == attributeName:
                             if float(attribute.attrValues[0]) > float(attributeValue):
                                 filteredData.append(example)
-                elif self.doesExampleMatchAttribVal(example, attributeName, attributeValue):
-                    filteredData.append(example)
             # now using our filtered data get the target counts
             for example in filteredData:
                 if example.targetValue not in targetValueCounts:
@@ -302,12 +239,6 @@ class DecisionTree(object):
                 else:
                     targetValueCounts[example.targetValue] += 1
             return targetValueCounts
-
-    def doesExampleMatchAttribVal(self, examplePoint, attributeName, attributeValue):
-        for attribute in examplePoint.attributes:
-            if attribute.attrName == attributeName and attribute.attrValues[0] == attributeValue:
-                return True
-        return False
 
     def calculateEntropyForumla(self, targetValueCounts):
         """
@@ -324,80 +255,10 @@ class DecisionTree(object):
         entropy = entropy * -1
         return (totalNbrMatchingAttributeValue,entropy)
 
-    def calculateGain(self, maxEntropy, dataSetSize, attributeValuesAndEntropy):
-        """
-        @param attributeValuesAndEntropy: dictionary where they key is an attribute value, and the value
-        is the entropy of that attribute value
-        """
-        gain = maxEntropy
-        for key in attributeValuesAndEntropy:
-            totalNbrMatchingAttributeValue = attributeValuesAndEntropy[key][0]
-            entropyForAttrValue = attributeValuesAndEntropy[key][1]
-            gain = gain - (float(totalNbrMatchingAttributeValue) / float(dataSetSize)) * entropyForAttrValue
-        return gain
-
-    def predictExamplePoint(self, examplePoint):
-        """
-        predicts a training example object, and returns a tuple
-        where the 0th index of the tuple is the predicted value using our tree, and the
-        1st index of the tuple is the actual value from the data point.
-        """
-        if self.rootNode == None:
-            print("you must build a tree from training data before running predictions")
-            sys.exit(1)
-        currNode = self.rootNode
-        while not currNode.isLeaf:
-            currNodeAttrName = currNode.name
-            # find the attribute in our example that matches the current Node attribute
-            attributeOfInterest = None
-            for attrib in examplePoint.attributes:
-                if attrib.attrName == currNodeAttrName:
-                    attributeOfInterest = attrib
-                    break
-            attributeOfInterestVal = attributeOfInterest.attrValues[0]
-            currNode = currNode.childrenNodes[attributeOfInterestVal]
-        return (currNode.targetValue, examplePoint.targetValue)
-
-    def predictAllExamplesInFile(self, predictFile):
-        """
-        predicts all the training examples in a file, and returns a list of tuples
-        where the 0th index of the tuple is the predicted value using our tree, and the
-        1st index of the tuple is the actual value from the data point.
-        """
-        if self.rootNode == None:
-            print("You must build a tree from training data before running predictions")
-            sys.exit(1)
-        values = []
-        with open(predictFile, "r") as fh:
-            for exampleLine in fh:
-                if exampleLine[0] == ';':
-                    continue #provides easy way to comment out data 
-                exampleLineParts = exampleLine.split("D:")[1].strip().split()
-                targetValue = exampleLineParts[-1]
-                exampleAttributes = []
-                for j in range(len(self.attributesAndValues)):
-                    attrName = self.attributesAndValues[j].attrName
-                    attrValues = [exampleLineParts[j]]
-                    attribute = Attribute(attrName, attrValues)
-                    exampleAttributes.append(attribute)
-                te = TrainingExample(exampleAttributes, targetValue)
-                predictVsActualTuple = self.predictExamplePoint(te)
-                values.append(predictVsActualTuple)
-        return values
-
-    def predictedRate(self, listOfResults):
-        """
-        @listOfResults a list of tuples with actual vs predicted vals
-        """
-        nbrCorrect = 0
-        for tup in listOfResults:
-            predictVal = tup[0]
-            actualVal = tup[1]
-            if predictVal == actualVal:
-                nbrCorrect += 1
-        print("Correct: {}\nTotal: {}\nPercentage: {}%\n".format(nbrCorrect, len(listOfResults), float(nbrCorrect) / float(len(listOfResults))))
-
     def readFile(self, dataFilePath):
+        """
+        helper method to read in our file, storing training examples and attributes in the correct classes
+        """
         targetNames = attributes = examples = None
         with open(dataFilePath, "r") as fh:
             nbrOfTargets = int(fh.readline().strip())
@@ -408,7 +269,7 @@ class DecisionTree(object):
             attributes = []
             for attrNum in range(nbrOfAttributes):
                 line = fh.readline().strip()
-                attribute = Attribute(None, None)
+                attribute = NumericAttribute(None, None)
                 if "NA:" in line:
                     attrLine = line.split("NA:")[1]
                     attribute.isNumeric = True
@@ -443,7 +304,7 @@ class DecisionTree(object):
                 for j in range(nbrOfAttributes):
                     attrName = attributes[j].attrName
                     attrValues = [exampleLineParts[j]]
-                    attribute = Attribute(attrName, attrValues)
+                    attribute = NumericAttribute(attrName, attrValues)
                     exampleAttributes.append(attribute)
                 te = TrainingExample(exampleAttributes, targetValue)
                 examples.append(te)
@@ -454,13 +315,7 @@ class DecisionTree(object):
 def main(argv):
     if len(argv) < 2:
         print(usage())
-    tree = DecisionTree(argv[1])
-    # tests
-    #results = tree.predictAllExamplesInFile(argv[2])
-    #tree.predictedRate(results)
-    # results = tree.predictAllExamplesInFile(argv[2])
-    # tree.predictedRate(results)
-    # export the dictionary to a json file
+    tree = NumericTree(argv[1])
     with open('../viz/data/decision_tree.json', 'w') as jsonfile:
         json.dump(tree.vizBetterNode, jsonfile)
     
