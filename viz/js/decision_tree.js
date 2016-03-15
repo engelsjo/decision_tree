@@ -4,7 +4,12 @@
  * Purpose: Interactive Decision Tree using d3.js
  */
 
-// http://codepen.io/SpencerCooley/pen/JtiFL
+/*
+ * References:
+ *
+ * http://bl.ocks.org/d3noob/8375092
+ * http://bl.ocks.org/d3noob/8326869
+ */ 
 
 var data; // a global
 
@@ -38,7 +43,6 @@ function generate() {
         .size([height, width]);
 
     // http://stackoverflow.com/questions/15007877/how-to-use-the-d3-diagonal-function-to-draw-curved-lines
-    // http://bl.ocks.org/d3noob/8326869
     diagonal = d3.svg.diagonal()
         .projection(function (d) {
             return [d.x, d.y];  // top-down
