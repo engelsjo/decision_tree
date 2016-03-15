@@ -38,12 +38,24 @@ class Attribute(object):
     def __init__(self, attrName, attrValues):
         self.attrName = attrName
         self.attrValues = attrValues
+        # a list of tuples
+        self.numericValues = []
+        self.isNumeric = False
 
     def __str__(self):
         return "Attribute Name: {} || AttributeValue(s): {}\n".format(self.attrName, self.attrValues)
 
     def __repr__(self):
         return str(self)
+
+class BreakPoint(object):
+    def __init__(self, avg, name1, name2):
+        self.avg = avg
+        self.name1 = name1
+        self.name2 = name2
+
+    def __str__(self):
+        return "AVG: {} Name1: {} Name2: {}".format(self.avg, self.name1, self.name2)
 
 class TreeNode(object):
     def __init__(self, name=None):
@@ -195,6 +207,8 @@ class DecisionTree(object):
             # this is the first node, so use all of the training examples
             targetValueCounts = self.getTargetValueCounts(dataSet, "initial", None)
             attributesValuesAndEntropy["initial"] = self.calculateEntropyForumla(targetValueCounts)
+        elif attribute.isNumeric:
+            return self.calculateNumericEntropy(dataSet, attribute)
         else:
             # this is not the first node, and we have multiple attribute values to consider
             for attribValue in attribute.attrValues:
@@ -202,8 +216,54 @@ class DecisionTree(object):
                 attributesValuesAndEntropy[attribValue] = self.calculateEntropyForumla(targetValueCounts)
 
         return attributesValuesAndEntropy 
+
+    def calculateNumericEntropy(self, dataSet, attribute):
+        breakPoints = []
+        attributeIndexInDataPoint = None
+        # build our list of tuples 
+        valuesAndClasses = []
+        for dataPoint in dataSet:
+            valueIWant = None
+            for i, attr in enumerate(dataPoint.attributes):
+                if attr.attrName == attribute.attrName:
+                    attributeIndexInDataPoint = i
+                    valueIWant = attr.attrValues[0]
+            valuesAndClasses.append((valueIWant, dataPoint.targetValue))
+        # sort our list of tuples
+        valuesAndClasses.sort()
+        for i in range(len(valuesAndClasses) - 1):
+            value1 = valuesAndClasses[i][0]
+            value2 = valuesAndClasses[i+1][0]
+            class1 = valuesAndClasses[i][1]
+            class2 = valuesAndClasses[i+1][1]
+            if value1 != value2 and class1 != class2:
+                # we have a breakpoint
+                avg = (float(value1) + float(value2)) / 2.0
+                attrName1 = "<{}".format(avg)
+                attrName2 = ">{}".format(avg)
+                bp = BreakPoint(avg, attrName1, attrName2)
+                breakPoints.append(bp)
+        # we now have all breakpoints - calc entropy on breakpoints
+        for breakPoint in breakPoints:
+            # divide the data
+            list1 = []
+            list2 = []
+            for dataPoint in dataSet:
+                if float(dataPoint.attributes[attributeIndexInDataPoint].attrValues[0]) < breakPoint.avg:
+                    list1.append(dataPoint)
+                elif float(dataPoint.attributes[attributeIndexInDataPoint].attrValues[0]) > breakPoint.avg:
+                    list2.append(dataPoint)
+                else:
+                    print("you messed something up")
+            entropy1TargetValueCounts = self.getTargetValueCounts(list1, attribute.attrName, breakPoint.avg, (True, breakPoint.name1))
+            entropy2TargetValueCounts = self.getTargetValueCounts(list2, attribute.attrName, breakPoint.avg, (True, breakPoint.name2))
+            entropy1 = self.calculateEntropyForumla(entropy1TargetValueCounts)
+            entropy2 = self.calculateEntropyForumla(entropy2TargetValueCounts)
+            maxEntropy = self.calculateEntropy(dataSet, None)["initial"][1]
+            gain = maxEntropy - float(entropy1[0])/len(dataSet) * float(entropy1[1]) - float(entropy2[0])/len(dataSet) * float(entropy2[1])
+            print(gain)
         
-    def getTargetValueCounts(self, dataSet, attributeName, attributeValue):
+    def getTargetValueCounts(self, dataSet, attributeName, attributeValue, isNumericData=(False, None)):
         """
         returns a dictionary where they key is the target value, and the value is the count found 
         matching that target value given that the attributeValue matches.
@@ -221,7 +281,19 @@ class DecisionTree(object):
             filteredData = []
             for example in dataSet:
                 # filter out data set to only use examples with attributeName matching our attributeValue
-                if self.doesExampleMatchAttribVal(example, attributeName, attributeValue):
+                if isNumericData[0] and "<" in str(isNumericData[1]):
+                    # filter numeric data by less than
+                    for attribute in example.attributes:
+                        if attribute.attrName == attributeName:
+                            if float(attribute.attrValues[0]) < float(attributeValue):
+                                filteredData.append(example)
+                elif isNumericData[0] and ">" in str(isNumericData[1]): 
+                    # filter numeric data by greater than
+                    for attribute in example.attributes:
+                        if attribute.attrName == attributeName:
+                            if float(attribute.attrValues[0]) > float(attributeValue):
+                                filteredData.append(example)
+                elif self.doesExampleMatchAttribVal(example, attributeName, attributeValue):
                     filteredData.append(example)
             # now using our filtered data get the target counts
             for example in filteredData:
@@ -335,13 +407,29 @@ class DecisionTree(object):
             # build a list of attribute objects holding the attrName and attrValues
             attributes = []
             for attrNum in range(nbrOfAttributes):
-                attrLine = fh.readline().strip().split("A:")[1]
-                attrLineParts = attrLine.split()
-                attrName = attrLineParts[0]
-                attrValues = []
-                for i in range(2, len(attrLineParts)):
-                    attrValues.append(attrLineParts[i])
-                attribute = Attribute(attrName, attrValues)
+                line = fh.readline().strip()
+                attribute = Attribute(None, None)
+                if "NA:" in line:
+                    attrLine = line.split("NA:")[1]
+                    attribute.isNumeric = True
+                    attrLineParts = attrLine.split()
+                    attrName = attrLineParts[0]
+                    numericValues = []
+                    for i in range(2, len(attrLineParts)):
+                        numericValues.append(attrLineParts[i])
+                    attribute.attrName = attrName
+                    attribute.numericValues = numericValues
+                else:
+                    # A: is in line
+                    attribute.isNumeric = False
+                    attrLine = line.split("A:")[1]
+                    attrLineParts = attrLine.split()
+                    attrName = attrLineParts[0]
+                    attrValues = []
+                    for i in range(2, len(attrLineParts)):
+                        attrValues.append(attrLineParts[i])
+                    attribute.attrName = attrName
+                    attribute.attrValues = attrValues
                 attributes.append(attribute)
             
             # build a list of all the example data
