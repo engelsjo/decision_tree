@@ -100,7 +100,13 @@ class DecisionTree(object):
         """
         divisionAttribute = self.getDivisionAttributeNumeric(trainingExamples)
         # divide up our data based on the attribute we got back
-        if divisionAttribute == None: return currVizNode
+        if divisionAttribute == None: 
+            # leaf node
+            if 'children' not in currVizNode:    
+                currVizNode['children'] = []  
+            leaf = {'name' : 'Decision: {}'.format(trainingExamples[1].targetValue), 'parent' : currVizNode['name']} 
+            currVizNode['children'].append(leaf)
+            return currVizNode
         subLists = {}
         key1 = "<{}".format(divisionAttribute.attrValues[0])
         key2 = ">{}".format(divisionAttribute.attrValues[0])
@@ -180,7 +186,7 @@ class DecisionTree(object):
                 subList = subLists[subListKey]
                 if subList == []: # no training examples, default to most common target value
                     childNode.isLeaf = True
-                    childNode.targetValue = "Iris-setosa"
+                    childNode.targetValue = "Iris-virginica"
                     currNode.childrenNodes[subListKey] = childNode
                 elif self.isLeafNode(subList):
                     childNode.isLeaf = True

@@ -108,7 +108,7 @@ class DecisionTree(object):
                 for child in currVizNode['children']:
                     if child['name'].split('~')[1].strip() == subListKey:
                         # create and append my leaf node
-                        leaf = {'name' : 'Decision: {}'.format("e"), 'parent' : child['name']}
+                        leaf = {'name' : 'Decision: {}'.format("p"), 'parent' : child['name']}
                         child['children'].append(leaf)
             elif not self.isLeafNode(subList):
                 for child in currVizNode['children']:
@@ -149,7 +149,7 @@ class DecisionTree(object):
             subList = subLists[subListKey]
             if subList == []: # no training examples, default to most common target value
                 childNode.isLeaf = True
-                childNode.targetValue = "e"
+                childNode.targetValue = "p"
                 currNode.childrenNodes[subListKey] = childNode
             elif self.isLeafNode(subList):
                 childNode.isLeaf = True
@@ -368,10 +368,8 @@ def main(argv):
         print(usage())
     tree = DecisionTree(argv[1])
     # tests
-    #results = tree.predictAllExamplesInFile(argv[2])
-    #tree.predictedRate(results)
-    # results = tree.predictAllExamplesInFile(argv[2])
-    # tree.predictedRate(results)
+    results = tree.predictAllExamplesInFile(argv[2])
+    tree.predictedRate(results)
     # export the dictionary to a json file
     with open('../viz/data/decision_tree.json', 'w') as jsonfile:
         json.dump(tree.vizBetterNode, jsonfile)
